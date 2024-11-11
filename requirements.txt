@@ -19,9 +19,7 @@ streamlit-drawable-canvas==0.8.0
 diffusers
 bitstring
 lpips
--q kaggle
 accelerate
 SSIM-PIL
 
 
--e .
