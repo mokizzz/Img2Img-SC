@@ -10,7 +10,7 @@
  # Language-Oriented Semantic Latent Representation for Image Transmission
 
 > [**Language-Oriented Semantic Latent Representation for Image Transmission**](https://arxiv.org/abs/2405.09976)
-
+>
 > [Giordano Cicchetti](https://www.linkedin.com/in/giordano-cicchetti-1ab73b258/), [Eleonora Grassucci](https://scholar.google.com/citations?user=Jcv0TgQAAAAJ&hl=it),
 > [Jihong Park](https://scholar.google.com/citations?user=I0CO72QAAAAJ&hl=en),[Jinho Choi](https://scholar.google.co.uk/citations?user=QzFia5YAAAAJ&hl=en)
 > [Sergio Barbarossa](https://scholar.google.com/citations?user=2woHFu8AAAAJ&hl=en),[Danilo Comminiello](https://scholar.google.com/citations?user=H3Y52cMAAAAJ&hl=en)
@@ -39,18 +39,15 @@ ________________________________
 
 Create a dedicated conda environment:
 ```
-conda env -n SemanticI2I python=3.9
+conda create -n SemanticI2I python=3.9
 conda activate SemanticI2I
-
 ```
 
 
 You can clone the repository by typing:
 ```
-
 git clone https://github.com/ispamm/Img2Img-SC.git
 cd Img2Img-SC
-
 ```
 
 You can update an existing [latent diffusion](https://github.com/CompVis/latent-diffusion) environment by running
@@ -59,16 +56,13 @@ You can update an existing [latent diffusion](https://github.com/CompVis/latent-
 conda install pytorch==1.12.1 torchvision==0.13.1 -c pytorch
 pip install transformers==4.19.2 diffusers invisible-watermark
 pip install -e .
-
 ``` 
 
 After that you can install the remaining required packages by running:
 
 
 ```
-
 pip install -r requirements.txt
-
 ```
 
 ## Download pretraining models
