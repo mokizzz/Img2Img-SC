@@ -19,6 +19,7 @@ from torch.utils.data import DataLoader, Dataset, random_split
 from tqdm import tqdm, trange
 from transformers import pipeline
 
+from ldm.data.dataset import get_test_dataset
 from ldm.data.flickr8k import get_datasets
 from ldm.models.diffusion.ddim import DDIMSampler
 from ldm.util import instantiate_from_config
@@ -34,7 +35,7 @@ INIT DATASET AND DATALOADER
 """
 batch_size = 1
 
-_, _, test = get_datasets(None)
+test = get_test_dataset(None, name="urban100")
 
 test_dataloader = DataLoader(dataset=test, batch_size=batch_size, shuffle=False)
 
@@ -126,9 +127,14 @@ def test(
     all_recon_images = []
 
     tq = tqdm(dataloader, total=num_images)
-    for batch in tq:
+    for data in tq:
 
-        img_file_path = batch["image_path"][0]
+        if "image_path" in data.keys():
+            img_file_path = data["image_path"][0]
+        elif "hr" in data.keys():
+            img_file_path = data["hr"][0]
+        else:
+            raise ValueError("Image path not found in data")
 
         # Open Image
         init_image = Image.open(img_file_path)
@@ -228,21 +234,21 @@ def test(
                                 img.save(
                                     os.path.join(sample_path, f"{base_count:05}.png")
                                 )
-                                ssim_values.append(compare_ssim(init_image_copy, img))
-                                all_origi_images.append(init_image_copy)
-                                all_recon_images.append(img)
+                                # ssim_values.append(compare_ssim(init_image_copy, img))
+                                all_origi_images.append(init_image_copy.convert("RGB"))
+                                all_recon_images.append(img.convert("RGB"))
 
                                 metrics = calculate_all_metrics(
                                     PIL.Image.open(
                                         os.path.join(
                                             sample_orig_path, f"{base_count:05}.png"
                                         )
-                                    ),
+                                    ).convert("RGB"),
                                     PIL.Image.open(
                                         os.path.join(
                                             sample_path, f"{base_count:05}.png"
                                         )
-                                    ),
+                                    ).convert("RGB"),
                                 )
                                 all_metrics.append(metrics)
 
@@ -265,7 +271,7 @@ def test(
             break
 
     print(f"mean lpips score at snr={snr} : {sum(lpips_values)/len(lpips_values)}")
-    print(f"mean ssim score at snr={snr} : {sum(ssim_values)/len(ssim_values)}")
+    # print(f"mean ssim score at snr={snr} : {sum(ssim_values)/len(ssim_values)}")
     print(
         f"mean time with sampling iterations {sampling_steps} : {sum(time_values)/len(time_values)}"
     )
@@ -326,17 +332,32 @@ if __name__ == "__main__":
     # INIZIO TEST
 
     # Strength is used to modulate the number of sampling steps. Steps=50*strength
-    for snr in [10, 8.75, 7.5, 6.25, 5]:
-        test(
-            test_dataloader,
-            snr=snr,
-            num_images=100,
-            batch_size=1,
-            num_images_per_sample=1,
-            outpath=outpath,
-            model=model,
-            device=device,
-            sampler=sampler,
-            strength=0.6,
-            scale=9,
-        )
+    # for snr in [10, 8.75, 7.5, 6.25, 5]:
+    #     test(
+    #         test_dataloader,
+    #         snr=snr,
+    #         num_images=100,
+    #         batch_size=1,
+    #         num_images_per_sample=1,
+    #         outpath=outpath,
+    #         model=model,
+    #         device=device,
+    #         sampler=sampler,
+    #         strength=0.6,
+    #         scale=9,
+    #     )
+
+    # SNR=100
+    test(
+        test_dataloader,
+        snr=100,
+        num_images=100,
+        batch_size=1,
+        num_images_per_sample=1,
+        outpath=outpath,
+        model=model,
+        device=device,
+        sampler=sampler,
+        strength=0.6,
+        scale=9,
+    )

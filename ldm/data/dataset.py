@@ -2,9 +2,9 @@ from omegaconf import DictConfig
 from torch.utils.data import Dataset
 
 
-def get_test_dataset(cfg: DictConfig) -> Dataset:
+def get_test_dataset(cfg: DictConfig, name: str = None) -> Dataset:
 
-    name = cfg.dataset.name
+    name = cfg.dataset.name if name is None else name
 
     if name == "bsd100":
         from .bsd100 import get_datasets
