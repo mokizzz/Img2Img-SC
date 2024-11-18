@@ -10,6 +10,8 @@ import torch
 import torch.nn as nn
 from einops import rearrange, repeat
 from imwatermark import WatermarkEncoder
+from logger import setup_logger
+from loguru import logger
 from omegaconf import OmegaConf
 from PIL import Image
 from pytorch_lightning import seed_everything
@@ -28,6 +30,8 @@ from scripts.dataset import Flickr8kDataset, Only_images_Flickr8kDataset
 from scripts.metrics_moki import calculate_all_metrics, calculate_fid
 from scripts.qam import qam16ModulationString, qam16ModulationTensor
 
+setup_logger()
+
 """
 
 INIT DATASET AND DATALOADER
@@ -35,9 +39,10 @@ INIT DATASET AND DATALOADER
 """
 batch_size = 1
 
-test = get_test_dataset(None, name="urban100")
-
+dataset_name = "flickr8k"
+test = get_test_dataset(None, name=dataset_name)
 test_dataloader = DataLoader(dataset=test, batch_size=batch_size, shuffle=False)
+logger.info(f"Dataset: {dataset_name}")
 
 
 """
@@ -97,6 +102,8 @@ def test(
     ddim_steps=50,
     scale=9.0,
 ):
+
+    logger.info(f"Testing with SNR={snr} and strength={strength}")
 
     # blip = pipeline("image-to-text", model="Salesforce/blip-image-captioning-large")
     ci = load_ci_model()
@@ -283,7 +290,7 @@ def test(
     avg_metrics["fid"] = calculate_fid(all_origi_images, all_recon_images)
     for metric_name, value in avg_metrics.items():
         print(f"---- Average {metric_name}: {value:.6g}")
-    print(
+    logger.info(
         "Results: "
         + "|".join(
             [
@@ -332,32 +339,32 @@ if __name__ == "__main__":
     # INIZIO TEST
 
     # Strength is used to modulate the number of sampling steps. Steps=50*strength
-    # for snr in [10, 8.75, 7.5, 6.25, 5]:
-    #     test(
-    #         test_dataloader,
-    #         snr=snr,
-    #         num_images=100,
-    #         batch_size=1,
-    #         num_images_per_sample=1,
-    #         outpath=outpath,
-    #         model=model,
-    #         device=device,
-    #         sampler=sampler,
-    #         strength=0.6,
-    #         scale=9,
-    #     )
+    for snr in [10, 8.75, 7.5, 6.25, 5]:
+        test(
+            test_dataloader,
+            snr=snr,
+            num_images=100,
+            batch_size=1,
+            num_images_per_sample=1,
+            outpath=outpath,
+            model=model,
+            device=device,
+            sampler=sampler,
+            strength=0.6,
+            scale=9,
+        )
 
     # SNR=100
-    test(
-        test_dataloader,
-        snr=100,
-        num_images=100,
-        batch_size=1,
-        num_images_per_sample=1,
-        outpath=outpath,
-        model=model,
-        device=device,
-        sampler=sampler,
-        strength=0.6,
-        scale=9,
-    )
+    # test(
+    #     test_dataloader,
+    #     snr=100,
+    #     num_images=100,
+    #     batch_size=1,
+    #     num_images_per_sample=1,
+    #     outpath=outpath,
+    #     model=model,
+    #     device=device,
+    #     sampler=sampler,
+    #     strength=0.6,
+    #     scale=9,
+    # )
