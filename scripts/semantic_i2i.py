@@ -39,7 +39,7 @@ INIT DATASET AND DATALOADER
 """
 batch_size = 1
 
-dataset_name = "flickr8k"
+dataset_name = "div2k"
 test = get_test_dataset(None, name=dataset_name)
 test_dataloader = DataLoader(dataset=test, batch_size=batch_size, shuffle=False)
 logger.info(f"Dataset: {dataset_name}")
@@ -79,6 +79,14 @@ def load_img(path):
     image = Image.open(path).convert("RGB")
     w, h = image.size
     # w, h = (512, 512)  # image.size
+    # TODO: If image is too large, lock aspect ratio and resize image
+    # max_size = 512
+    # if w > max_size or h > max_size:
+    #     if w > h:
+    #         w, h = max_size, max_size * h // w
+    #     else:
+    #         w, h = max_size * w // h, max_size
+
     # print(f"loaded input image of size ({w}, {h}) from {path}")
     w, h = map(lambda x: x - x % 64, (w, h))  # resize to integer multiple of 64
     image = image.resize((w, h), resample=PIL.Image.LANCZOS)
@@ -134,7 +142,11 @@ def test(
     all_recon_images = []
 
     tq = tqdm(dataloader, total=num_images)
-    for data in tq:
+    for i, data in enumerate(tq):
+
+        # TODO: TMP for testing
+        # if i not in [98, 97, 90, 88, 74, 68, 29, 27]:
+        #     continue
 
         if "image_path" in data.keys():
             img_file_path = data["image_path"][0]
@@ -258,6 +270,7 @@ def test(
                                     ).convert("RGB"),
                                 )
                                 all_metrics.append(metrics)
+                                logger.info(f"Metrics {i}: {metrics}")
 
                                 base_count += 1
                             all_samples.append(x_samples)
@@ -339,32 +352,32 @@ if __name__ == "__main__":
     # INIZIO TEST
 
     # Strength is used to modulate the number of sampling steps. Steps=50*strength
-    for snr in [10, 8.75, 7.5, 6.25, 5]:
-        test(
-            test_dataloader,
-            snr=snr,
-            num_images=100,
-            batch_size=1,
-            num_images_per_sample=1,
-            outpath=outpath,
-            model=model,
-            device=device,
-            sampler=sampler,
-            strength=0.6,
-            scale=9,
-        )
+    # for snr in [10, 8.75, 7.5, 6.25, 5]:
+    #     test(
+    #         test_dataloader,
+    #         snr=snr,
+    #         num_images=100,
+    #         batch_size=1,
+    #         num_images_per_sample=1,
+    #         outpath=outpath,
+    #         model=model,
+    #         device=device,
+    #         sampler=sampler,
+    #         strength=0.6,
+    #         scale=9,
+    #     )
 
     # SNR=100
-    # test(
-    #     test_dataloader,
-    #     snr=100,
-    #     num_images=100,
-    #     batch_size=1,
-    #     num_images_per_sample=1,
-    #     outpath=outpath,
-    #     model=model,
-    #     device=device,
-    #     sampler=sampler,
-    #     strength=0.6,
-    #     scale=9,
-    # )
+    test(
+        test_dataloader,
+        snr=100,
+        num_images=100,
+        batch_size=1,
+        num_images_per_sample=1,
+        outpath=outpath,
+        model=model,
+        device=device,
+        sampler=sampler,
+        strength=0.6,
+        scale=9,
+    )
